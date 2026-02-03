@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: chat-websocket
+    env: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: PORT
+        value: 8080
