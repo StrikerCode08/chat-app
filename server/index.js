@@ -6,6 +6,23 @@ const wss = new WebSocketServer({ port: PORT });
 
 const clients = new Map();
 
+const NAME_PREFIX = "Guest";
+const NAME_SUFFIX_LENGTH = 4;
+const NAME_CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+function generateGuestName() {
+  let name = "";
+  const used = new Set(Array.from(clients.values(), (client) => client.name));
+  do {
+    let suffix = "";
+    for (let i = 0; i < NAME_SUFFIX_LENGTH; i += 1) {
+      suffix += NAME_CHARSET[Math.floor(Math.random() * NAME_CHARSET.length)];
+    }
+    name = `${NAME_PREFIX}-${suffix}`;
+  } while (used.has(name));
+  return name;
+}
+
 function broadcast(payload) {
   const message = JSON.stringify(payload);
   for (const client of wss.clients) {
@@ -16,8 +33,17 @@ function broadcast(payload) {
 }
 
 wss.on("connection", (ws) => {
-  const user = { id: randomUUID(), name: "Guest" };
+  const user = { id: randomUUID(), name: generateGuestName() };
   clients.set(ws, user);
+
+  ws.send(
+    JSON.stringify({
+      type: "welcome",
+      id: user.id,
+      name: user.name,
+      at: Date.now()
+    })
+  );
 
   ws.send(
     JSON.stringify({
@@ -70,6 +96,23 @@ wss.on("connection", (ws) => {
         at: Date.now()
       });
     }
+
+    if (payload.type === "typing") {
+      const sender = clients.get(ws);
+      const isTyping = Boolean(payload.isTyping);
+      const message = JSON.stringify({
+        type: "typing",
+        id: sender.id,
+        name: sender.name,
+        isTyping
+      });
+      for (const client of wss.clients) {
+        if (client !== ws && client.readyState === 1) {
+          client.send(message);
+        }
+      }
+    }
+
   });
 
   ws.on("close", () => {
