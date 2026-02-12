@@ -4,9 +4,21 @@
   "type": "module",
   "scripts": {
     "dev": "node --watch index.js",
-    "start": "node index.js"
+    "start": "node index.js",
+    "prisma": "prisma",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev --name init"
   },
   "dependencies": {
+    "@prisma/client": "^5.20.0",
+    "bcryptjs": "^2.4.3",
+    "connect-sqlite3": "^0.9.13",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-session": "^1.17.3",
     "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "prisma": "^5.20.0"
   }
 }
