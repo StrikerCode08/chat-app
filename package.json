@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "npm run dev --workspace client",
     "dev:server": "npm run dev --workspace server",
-    "build": "npm run build --workspace client"
+    "build": "npm run build --workspace client",
+    "postinstall": "npm run prisma --workspace server -- generate"
   }
 }
