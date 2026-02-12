@@ -45,6 +45,15 @@ app.use((req, res, next) => {
   next();
 });
 
+const isProduction = process.env.NODE_ENV === "production";
+const allowedOrigins = new Set(
+  CLIENT_ORIGIN.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
+
+app.set("trust proxy", 1);
+
 const sessionMiddleware = session({
   store: sessionStore,
   secret: SESSION_SECRET,
@@ -52,14 +61,24 @@ const sessionMiddleware = session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: "lax",
-    secure: false
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction
   }
 });
 
 app.use(
   cors({
-    origin: CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.size === 0) {
+        callback(null, true);
+        return;
+      }
+      if (allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error("Not allowed by CORS"));
+    },
     credentials: true
   })
 );
