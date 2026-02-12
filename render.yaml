@@ -4,8 +4,18 @@ services:
     env: node
     plan: free
     region: oregon
-    buildCommand: npm install
+    buildCommand: npm install && npm run prisma --workspace server -- generate
     startCommand: node server/index.js
     envVars:
       - key: PORT
         value: 8080
+      - key: SESSION_SECRET
+        value: change-me
+      - key: CLIENT_ORIGIN
+        value: https://your-github-pages-domain
+      - key: DATABASE_URL
+        value: file:/var/data/chat.db
+    disk:
+      name: chat-data
+      mountPath: /var/data
+      sizeGB: 1
